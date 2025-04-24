@@ -5,6 +5,8 @@ VisualStudioVersion = 17.13.35931.197 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M1_Imiron", "M1_Imiron\M1_Imiron.csproj", "{2F237E12-44A0-46A9-8EAE-EF22F46D57AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{56F8C0F3-085D-4702-8005-D7671A06813C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{2F237E12-44A0-46A9-8EAE-EF22F46D57AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F237E12-44A0-46A9-8EAE-EF22F46D57AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F237E12-44A0-46A9-8EAE-EF22F46D57AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56F8C0F3-085D-4702-8005-D7671A06813C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56F8C0F3-085D-4702-8005-D7671A06813C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56F8C0F3-085D-4702-8005-D7671A06813C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56F8C0F3-085D-4702-8005-D7671A06813C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
