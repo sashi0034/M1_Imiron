@@ -9,16 +9,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="52e3e4cf-0b96-450a-bb20-fbaa94f2bfef" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.M1_Imiron/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/M1_Imiron.sln" beforeDir="false" afterPath="$PROJECT_DIR$/M1_Imiron.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/M1_Imiron/M1_Imiron.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/M1_Imiron/M1_Imiron.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/M1_Imiron/Token.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/M1_Imiron/Tokenizer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.M1_Imiron/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.M1_Imiron/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/M1_Imiron/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/M1_Imiron/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/M1_Imiron/Test.cs" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -35,12 +37,18 @@
     "accountId": "68741054-915f-4720-8422-8016f3fc3a71"
   }
 }]]></component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock://C:/dev/lang/M1_Imiron/M1_Imiron/Program.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo"><![CDATA[{
   "customColor": "",
   "associatedIndex": 5
 }]]></component>
   <component name="ProjectId" id="2wCGTQzhL32Bgi9CH5X0GklNB85" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -51,6 +59,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "XThreadsFramesViewSplitterKey": "1.2483517",
     "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -115,8 +124,17 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1745538150738</updated>
-      <workItem from="1745538153133" duration="416000" />
+      <workItem from="1745538153133" duration="2090000" />
     </task>
+    <task id="LOCAL-00001" summary="Test プロジェクト">
+      <option name="closed" value="true" />
+      <created>1745538639664</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1745538639664</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -126,6 +144,8 @@
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="Test プロジェクト" />
+    <option name="LAST_COMMIT_MESSAGE" value="Test プロジェクト" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

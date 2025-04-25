@@ -1,8 +1,14 @@
-﻿class Program
+﻿namespace M1_Imiron;
+
+internal static class Program
 {
     public static void Main()
     {
-        // See https://aka.ms/new-console-template for more information
-        Console.WriteLine("Hello, World!");
+        var input = "S(S(Z)) is less than S(S(S(S(S(Z)))))";
+        var tokenList = Tokenizer.Tokenize(input);
+        foreach (var token in tokenList)
+        {
+            Console.WriteLine($"Token: {token.Text}, Line: {token.Line}, Character: {token.Character}");
+        }
     }
 }
