@@ -9,9 +9,10 @@ public static class Reduction
         var rule = Parser.ExpectRule(new ParserState(tokenList));
 
         var innerList = new List<string>();
-        foreach (var reduction in rule.Reduction)
+        for (var reductionIndex = 0; reductionIndex < rule.Reduction.Length; reductionIndex++)
         {
-            // Console.WriteLine("Reducing: " + content + " ==> " + reduction);
+            var reduction = rule.Reduction[reductionIndex];
+            // Console.WriteLine($"Reducing [{reductionIndex}]: {rule.Content} ==> {reduction}");
 
             innerList.Add(addIndentToEachLine(Reduce(reduction)));
         }

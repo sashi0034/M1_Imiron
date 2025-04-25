@@ -1,41 +1,49 @@
 ﻿namespace M1_Imiron;
 
-public interface IDrvTree
+public interface IDrvExpr
 {
     public string Content { get; }
 }
 
+// DrvValue ::= DrvZ | DrvS
+public interface IDrvValue : IDrvExpr
+{
+    public int Value { get; }
+}
+
 // DrvZ ::= 'Z'
 public record DrvZ(
-) : IDrvTree
+) : IDrvValue
 {
     public string Content => "Z";
+
+    public int Value => 0;
 }
 
-// DrvS ::= 'S' '(' DrvParam ')'
+// DrvS ::= 'S' '(' DrvValue ')'
 public record DrvS(
-    DrvParam Inner
-) : IDrvTree
+    IDrvValue Inner
+) : IDrvValue
 {
     public string Content => $"S({Inner.Content})";
+
+    public int Value => 1 + Inner.Value;
+
+    public static IDrvValue FromValue(int value)
+    {
+        if (value <= 0) return new DrvZ();
+        return new DrvS(FromValue(value - 1));
+    }
 }
 
-// DrvParam ::= DrvZ | DrvS
-public record DrvParam(
-    IDrvTree Param
-) : IDrvTree
-{
-    public string Content => Param.Content;
-}
-
-public interface IDrvRule : IDrvTree
+public interface IDrvRule : IDrvExpr
 {
     public string[] Reduction { get; }
 }
 
-// DrvPZero ::= DrvZ plus DrvParam is DrvParam
+// DrvPZero ::= DrvZ plus DrvValue is DrvValue
 public record DrvPZero(
-    DrvParam N
+    IDrvValue N
 ) : IDrvRule
 {
     public string Content => $"Z plus {N.Content} is {N.Content} by P-Zero";
@@ -43,22 +51,22 @@ public record DrvPZero(
     public string[] Reduction => [];
 }
 
-// DrvPSucc ::= DrvS plus DrvParam is DrvS
+// DrvPSucc ::= DrvS plus DrvValue is DrvS
 public record DrvPSucc(
     DrvS N1,
-    DrvParam N2,
+    IDrvValue N2,
     DrvS N
 ) : IDrvRule
 {
     public string Content =>
         $"{N1.Content} plus {N2.Content} is {N.Content} by P-Succ";
 
-    public string[] Reduction => [$"{N1.Inner.Content} plus {N2.Param.Content} is {N.Inner.Content}"];
+    public string[] Reduction => [$"{N1.Inner.Content} plus {N2.Content} is {N.Inner.Content}"];
 }
 
 // DrvTZero ::= DrvZ times TrvParameter is DrvZ
 public record DrvTZero(
-    DrvParam N
+    IDrvValue N
 ) : IDrvRule
 {
     public string Content => $"Z times {N.Content} is Z by T-Zero";
@@ -66,19 +74,20 @@ public record DrvTZero(
     public string[] Reduction => [];
 }
 
-// DrvTSucc ::= DrvS times DrvParam is DrvParam
+// DrvTSucc ::= DrvS times DrvValue is DrvValue
 public record DrvTSucc(
     DrvS N1,
-    DrvParam N2,
-    string N3,
-    DrvParam N4
+    IDrvValue N2,
+    IDrvValue N4
 ) : IDrvRule
 {
+    public readonly IDrvValue N3 = DrvS.FromValue(N1.Inner.Value * N2.Value);
+
     public string Content => $"{N1.Content} times {N2.Content} is {N4.Content} by T-Succ";
 
     public string[] Reduction =>
     [
-        $"{N1.Inner.Content} times {N2.Param.Content} is {N3}",
-        $"{N2.Content} plus {N3} is {N4.Content}"
+        $"{N1.Inner.Content} times {N2.Content} is {N3.Content}",
+        $"{N2.Content} plus {N3.Content} is {N4.Content}"
     ];
 }

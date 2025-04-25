@@ -63,7 +63,7 @@ public static class Parser
         return new DrvZ();
     }
 
-    // DrvS ::= 'S' '(' DrvParam ')'
+    // DrvS ::= 'S' '(' DrvValue ')'
     private static DrvS? parseS(ParserState parser)
     {
         if (parser.NextOpt()?.Text != "S") return null;
@@ -71,7 +71,7 @@ public static class Parser
 
         expectToken(parser, "(");
 
-        DrvParam? parameter = parseParameter(parser);
+        IDrvValue? parameter = parseValue(parser);
         if (parameter == null) throw abort(parser);
 
         expectToken(parser, ")");
@@ -80,35 +80,33 @@ public static class Parser
     }
 
 
-    // DrvParam ::= DrvZ | DrvS
-    private static DrvParam? parseParameter(ParserState parser)
+    // DrvValue ::= DrvZ | DrvS
+    private static IDrvValue? parseValue(ParserState parser)
     {
-        var parameter = parseZ(parser) ?? (IDrvTree?)parseS(parser);
-        if (parameter == null) return null;
-
-        return new DrvParam(parameter);
+        var value = parseZ(parser) ?? (IDrvValue?)parseS(parser);
+        return value;
     }
 
-    // DrvPZero ::= DrvZ plus DrvParam is DrvParam
-    // DrvPSucc ::= DrvS plus DrvParam is DrvS
+    // DrvPZero ::= DrvZ plus DrvValue is DrvValue
+    // DrvPSucc ::= DrvS plus DrvValue is DrvS
     // DrvTZero ::= DrvZ times TrvParameter is DrvZ
-    // DrvTSucc ::= DrvS times DrvParam is DrvParam
+    // DrvTSucc ::= DrvS times DrvValue is DrvValue
     public static IDrvRule ExpectRule(ParserState parser)
     {
-        var lhs = parseParameter(parser);
+        var lhs = parseValue(parser);
         if (lhs == null) throw abort(parser);
 
         var op = parser.NextOpt()?.Text;
         if (op != "plus" && op != "times") throw abort(parser);
         parser.Step();
 
-        var rhs = parseParameter(parser);
+        var rhs = parseValue(parser);
         if (rhs == null) throw abort(parser);
 
         if (parser.NextOpt()?.Text != "is") throw abort(parser);
         parser.Step();
 
-        var result = parseParameter(parser);
+        var result = parseValue(parser);
         if (result == null) throw abort(parser);
 
         if (op == "plus")
@@ -117,7 +115,7 @@ public static class Parser
             {
                 return new DrvPZero(rhs);
             }
-            else if (lhs.Param is DrvS lhsS && result.Param is DrvS resultS)
+            else if (lhs is DrvS lhsS && result is DrvS resultS)
             {
                 return new DrvPSucc(lhsS, rhs, resultS);
             }
@@ -129,9 +127,9 @@ public static class Parser
             {
                 return new DrvTZero(rhs);
             }
-            else if (lhs.Param is DrvS lhsS)
+            else if (lhs is DrvS lhsS)
             {
-                return new DrvTSucc(lhsS, rhs, "Z", result);
+                return new DrvTSucc(lhsS, rhs, result);
             }
         }
 
