@@ -34,4 +34,48 @@ public static class Test
             }
             """, Reduction.Reduce("S(Z) times S(Z) is S(Z)"));
     }
+
+    [Fact]
+    public static void Addition_and_multiplication_of_natural_numbers()
+    {
+        assertEqual(
+            "Z plus Z is Z by P-Zero {}", Reduction.Reduce("Z plus Z is Z"));
+
+        assertEqual(
+            """
+            Z plus S(S(Z)) is S(S(Z)) by P-Zero {}
+            """, Reduction.Reduce("Z plus S(S(Z)) is S(S(Z))\n"));
+
+        assertEqual(
+            """
+            S(S(Z)) plus Z is S(S(Z)) by P-Succ {
+                S(Z) plus Z is S(Z) by P-Succ {
+                    Z plus Z is Z by P-Zero {}
+                }
+            }
+            """, Reduction.Reduce("S(S(Z)) plus Z is S(S(Z))"));
+
+        assertEqual(
+            """
+            S(Z) plus S(S(S(Z))) is S(S(S(S(Z)))) by P-Succ {
+                Z plus S(S(S(Z))) is S(S(S(Z))) by P-Zero {}
+            }
+            """, Reduction.Reduce("S(Z) plus S(S(S(Z))) is S(S(S(S(Z))))"));
+
+        assertEqual(
+            """
+            Z times S(S(Z)) is Z by T-Zero {}
+            """, Reduction.Reduce("Z times S(S(Z)) is Z"));
+
+        assertEqual(
+            """
+            S(S(Z)) times Z is Z by T-Succ {
+                S(Z) times Z is Z by T-Succ {
+                    Z times Z is Z by T-Zero {};
+                    Z plus Z is Z by P-Zero {}
+                };
+                Z plus Z is Z by P-Zero {}
+            }
+            """, Reduction.Reduce("S(S(Z)) times Z is Z"));
+    }
 }
