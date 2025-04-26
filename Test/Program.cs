@@ -134,5 +134,34 @@ public static class Test
             """
             S(S(Z)) is less than S(S(S(Z))) by L-Succ {}
             """, Reduction.Reduce("#CompareNat3 S(S(Z)) is less than S(S(S(Z)))"));
+
+        assertEqual(
+            """
+            S(S(Z)) is less than S(S(S(S(S(Z))))) by L-Trans {
+                S(S(Z)) is less than S(S(S(Z))) by L-Succ {};
+                S(S(S(Z))) is less than S(S(S(S(S(Z))))) by L-Trans {
+                    S(S(S(Z))) is less than S(S(S(S(Z)))) by L-Succ {};
+                    S(S(S(S(Z)))) is less than S(S(S(S(S(Z))))) by L-Succ {}
+                }
+            }
+            """, Reduction.Reduce("#CompareNat1 S(S(Z)) is less than S(S(S(S(S(Z)))))"));
+
+        assertEqual(
+            """
+            S(S(Z)) is less than S(S(S(S(S(Z))))) by L-SuccSucc {
+                S(Z) is less than S(S(S(S(Z)))) by L-SuccSucc {
+                    Z is less than S(S(S(Z))) by L-Zero {}
+                }
+            }
+            """, Reduction.Reduce("#CompareNat2 S(S(Z)) is less than S(S(S(S(S(Z)))))"));
+
+        assertEqual(
+            """
+            S(S(Z)) is less than S(S(S(S(S(Z))))) by L-SuccR {
+                S(S(Z)) is less than S(S(S(S(Z)))) by L-SuccR {
+                    S(S(Z)) is less than S(S(S(Z))) by L-Succ {}
+                }
+            }
+            """, Reduction.Reduce("#CompareNat3 S(S(Z)) is less than S(S(S(S(S(Z)))))"));
     }
 }
