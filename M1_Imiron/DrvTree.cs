@@ -154,7 +154,6 @@ public record DrvLSuccR(
 
 public interface IDrvExp : IDrvNat;
 
-
 // DrcTerm :== DrvNat {* DrvNat}
 public record DrvTerm(
     IDrvNat Head,
@@ -168,10 +167,15 @@ public record DrvTerm(
 
     public int Value => Terms.Aggregate(1, (acc, t) => acc * t.Value);
 
-    public DrvTerm PopFront()
+    public DrvTerm PopBack()
     {
-        return new DrvTerm(Tail[0], Tail.Slice(1, Tail.Count - 1));
+        return new DrvTerm(Head, Tail.Slice(0, Tail.Count - 1));
     }
+
+    // public DrvTerm PopFront()
+    // {
+    //     return new DrvTerm(Tail[0], Tail.Slice(1, Tail.Count - 1));
+    // }
 }
 
 // DrvExpr ::= DrvTerm {+ DrcTerm}
@@ -187,10 +191,15 @@ public record DrvExpr(
 
     public int Value => Terms.Sum(t => t.Value);
 
-    public DrvExpr PopFront()
+    public DrvExpr PopBack()
     {
-        return new DrvExpr(Tail[0], Tail.Slice(1, Tail.Count - 1));
+        return new DrvExpr(Head, Tail.Slice(0, Tail.Count - 1));
     }
+
+    // public DrvExpr PopFront()
+    // {
+    //     return new DrvExpr(Tail[0], Tail.Slice(1, Tail.Count - 1));
+    // }
 }
 
 public interface IDrvExpRule : IDrvRule

@@ -315,13 +315,13 @@ public static class Parser
 
         if (expr.Tail.Count > 0)
         {
-            return new DrvEPlus(expr.Head, expr.PopFront(), nat);
+            return new DrvEPlus(expr.PopBack(), expr.Tail[^1], nat);
         }
 
         var term = expr.Head;
         if (term.Tail.Count > 0)
         {
-            return new DrvETimes(term.Head, term.PopFront(), nat);
+            return new DrvETimes(term.PopBack(), term.Tail[^1], nat);
         }
 
         return new DrvEConst(term.Head);
