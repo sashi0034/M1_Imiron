@@ -5,6 +5,10 @@ public static class Reduction
     public static string Reduce(string content)
     {
         var tokenList = Tokenizer.Tokenize(content);
+        var directiveText = tokenList
+            .Where(t => t.Kind == TokenKind.Directive)
+            .Select(t => t.Text + " ")
+            .ToList();
 
         var rule = Parser.ExpectRule(new ParserState(tokenList));
 
@@ -13,6 +17,8 @@ public static class Reduction
         {
             var reduction = rule.Reduction[reductionIndex];
             // Console.WriteLine($"Reducing [{reductionIndex}]: {rule.Content} ==> {reduction}");
+
+            reduction = string.Join("", directiveText) + reduction;
 
             innerList.Add(addIndentToEachLine(Reduce(reduction)));
         }

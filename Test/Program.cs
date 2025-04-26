@@ -36,7 +36,7 @@ public static class Test
     }
 
     [Fact]
-    public static void Addition_and_multiplication_of_natural_numbers()
+    public static void Nat()
     {
         assertEqual(
             "Z plus Z is Z by P-Zero {}", Reduction.Reduce("Z plus Z is Z"));
@@ -114,11 +114,25 @@ public static class Test
     }
 
     [Fact]
-    public static void Comparing_natural_numbers()
+    public static void CompareNat()
     {
         assertEqual(
             """
             S(S(Z)) is less than S(S(S(Z))) by L-Succ {}
-            """, Reduction.Reduce("S(S(Z)) is less than S(S(S(Z)))"));
+            """, Reduction.Reduce("#CompareNat1 S(S(Z)) is less than S(S(S(Z)))"));
+
+        assertEqual(
+            """
+            S(S(Z)) is less than S(S(S(Z))) by L-SuccSucc {
+                S(Z) is less than S(S(Z)) by L-SuccSucc {
+                    Z is less than S(Z) by L-Zero {}
+                }
+            }
+            """, Reduction.Reduce("#CompareNat2 S(S(Z)) is less than S(S(S(Z)))"));
+
+        assertEqual(
+            """
+            S(S(Z)) is less than S(S(S(Z))) by L-Succ {}
+            """, Reduction.Reduce("#CompareNat3 S(S(Z)) is less than S(S(S(Z)))"));
     }
 }

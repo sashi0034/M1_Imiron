@@ -118,3 +118,36 @@ public record DrvLTrans(
         $"{N2.Content} is less than {N3.Content}"
     ];
 }
+
+// DrvLZero ::= DrvZ is less than DrvS
+public record DrvLZero(
+    IDrvValue N
+) : IDrvRule
+{
+    public string Content => $"Z is less than {N.Content} by L-Zero";
+
+    public string[] Reduction => [];
+}
+
+// DrvLSuccSucc ::= DrvS is less than DrvS
+public record DrvLSuccSucc(
+    DrvS N1,
+    DrvS N2
+) : IDrvRule
+{
+    public string Content => $"{N1.Content} is less than {N2.Content} by L-SuccSucc" +
+                             $"";
+
+    public string[] Reduction => [$"{N1.Inner.Content} is less than {N2.Inner.Content}",];
+}
+
+// DrvLSuccR :== DrvValue is less than DrvS
+public record DrvLSuccR(
+    IDrvValue N1,
+    DrvS N2
+) : IDrvRule
+{
+    public string Content => $"{N1.Content} is less than {N2.Content} by L-SuccR";
+
+    public string[] Reduction => [$"{N1.Content} is less than {N2.Inner.Content}"];
+}

@@ -93,7 +93,7 @@ public static class Parser
     // DrvPSucc ::= DrvS plus DrvValue is DrvS
     // DrvTZero ::= DrvZ times TrvParameter is DrvZ
     // DrvTSucc ::= DrvS times DrvValue is DrvValue
-    private static IDrvRule? parsePlusOrTimesRule(ParserState parser)
+    private static IDrvRule? parseNatRule(ParserState parser)
     {
         var lhs = parseValue(parser);
         if (lhs == null) return null;
@@ -137,23 +137,45 @@ public static class Parser
         throw fail(parser);
     }
 
-    // DrvLSucc ::= DrvValue is less than DrvS
-    // DrvLTrans ::= DrvValue is less than DrvValue
-    public static IDrvRule? parseLessThanRule(ParserState parser)
+    // lhs is less than rhs
+    private static bool parseLhsIsLessThanRhs(ParserState parser, out IDrvValue? lhs, out IDrvValue? rhs)
     {
-        var lhs = parseValue(parser);
-        if (lhs == null) return null;
+        lhs = parseValue(parser);
+        if (lhs == null)
+        {
+            rhs = null;
+            return true;
+        }
 
-        if (parser.NextOpt()?.Text != "is") return null;
+        if (parser.NextOpt()?.Text != "is")
+        {
+            rhs = null;
+            return true;
+        }
+
         parser.Step();
 
-        if (parser.NextOpt()?.Text != "less") return null;
+        if (parser.NextOpt()?.Text != "less")
+        {
+            rhs = null;
+            return true;
+        }
+
         parser.Step();
 
         expectToken(parser, "than");
 
-        var rhs = parseValue(parser);
+        rhs = parseValue(parser);
         if (rhs == null) throw abort(parser);
+        return false;
+    }
+
+    // DrvLSucc ::= DrvValue is less than DrvS
+    // DrvLTrans ::= DrvValue is less than DrvValue
+    public static IDrvRule? parseCompareNat1Rule(ParserState parser)
+    {
+        if (parseLhsIsLessThanRhs(parser, out var lhs, out var rhs)) return null;
+        Debug.Assert(lhs != null && rhs != null);
 
         if (lhs.Value == rhs.Value - 1)
         {
@@ -165,13 +187,80 @@ public static class Parser
         }
     }
 
+    // DrvLZero ::= DrvZ is less than DrvS
+    // DrvLSuccSucc ::= DrvS is less than DrvS
+    public static IDrvRule? parseCompareNat2Rule(ParserState parser)
+    {
+        if (parseLhsIsLessThanRhs(parser, out var lhs, out var rhs)) return null;
+        Debug.Assert(lhs != null && rhs != null);
+
+        if (lhs.Value == 0)
+        {
+            return new DrvLZero(rhs);
+        }
+        else if (lhs is DrvS lhsS && rhs is DrvS rhsS)
+        {
+            return new DrvLSuccSucc(lhsS, rhsS);
+        }
+
+        throw fail(parser);
+    }
+
+    // DrvLSucc ::= DrvValue is less than DrvS
+    // DrvLSuccR :== DrvValue is less than DrvS
+    public static IDrvRule? parseCompareNat3Rule(ParserState parser)
+    {
+        if (parseLhsIsLessThanRhs(parser, out var lhs, out var rhs)) return null;
+        Debug.Assert(lhs != null && rhs != null);
+
+        if (lhs.Value == rhs.Value - 1)
+        {
+            return new DrvLSucc(lhs);
+        }
+        else if (rhs is DrvS rhsS)
+        {
+            return new DrvLSuccR(lhs, rhsS);
+        }
+
+        throw fail(parser);
+    }
+
+    public static IDrvRule? parseCompareNatRule(ParserState parser)
+    {
+        string directive = "";
+        if (parser.NextOpt()?.Kind == TokenKind.Directive)
+        {
+            directive = parser.Next().Text;
+            parser.Step();
+        }
+
+        if (directive == "#CompareNat1")
+        {
+            return parseCompareNat1Rule(parser);
+        }
+        else if (directive == "#CompareNat2")
+        {
+            return parseCompareNat2Rule(parser);
+        }
+        else if (directive == "#CompareNat3")
+        {
+            return parseCompareNat3Rule(parser);
+        }
+        else
+        {
+            return parseCompareNat1Rule(parser.Clone()) ??
+                   parseCompareNat2Rule(parser.Clone()) ??
+                   parseCompareNat3Rule(parser.Clone());
+        }
+    }
+
     public static IDrvRule ExpectRule(ParserState parser)
     {
-        var plusOrMinus = parsePlusOrTimesRule(parser.Clone());
-        if (plusOrMinus != null) return plusOrMinus;
+        var nat = parseNatRule(parser.Clone());
+        if (nat != null) return nat;
 
-        var lessThan = parseLessThanRule(parser.Clone());
-        if (lessThan != null) return lessThan;
+        var compareNat = parseCompareNatRule(parser.Clone());
+        if (compareNat != null) return compareNat;
 
         throw fail(parser);
     }

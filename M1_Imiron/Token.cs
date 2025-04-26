@@ -8,7 +8,8 @@ public record struct TokenPosition(
 public enum TokenKind
 {
     Alphabet,
-    Mark
+    Mark,
+    Directive,
 }
 
 public record Token(

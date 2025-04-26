@@ -19,19 +19,17 @@ public static class Tokenizer
             var lineText = lineTextList[curretntLine];
 
             // アルファベット or '(', ']', '{', '}', ';'
-            var matches = Regex.Matches(lineText, @"\w+|[()\[\]{};]");
+            var matches = Regex.Matches(lineText, @"\w+|[()\[\]{};]|#\w+");
             foreach (Match match in matches)
             {
-                bool isAlphabet = Regex.IsMatch(match.Value, @"\w+");
-                var token = match.Value;
+                var tokenText = match.Value;
                 var character = match.Index;
 
-                tokenList.Add(new Token(
-                    isAlphabet ? TokenKind.Alphabet : TokenKind.Mark,
-                    token,
-                    curretntLine,
-                    character
-                ));
+                TokenKind kind = TokenKind.Mark;
+                if (Regex.IsMatch(tokenText, @"\w+")) kind = TokenKind.Alphabet;
+                if (tokenText.StartsWith("#")) kind = TokenKind.Directive;
+
+                tokenList.Add(new Token(kind, tokenText, curretntLine, character));
             }
 
             curretntLine++;
