@@ -154,13 +154,25 @@ public record DrvLSuccR(
 
 public interface IDrvExp : IDrvNat;
 
-// DrcTerm :== DrvNat {* DrvNat}
-public record DrvTerm(
-    IDrvNat Head,
-    List<IDrvNat> Tail
+// DrcFactor :== '(' DrcExpr ')' | DrcNat
+public record DrvFactor(
+    IDrvNat Inner
 ) : IDrvExp
 {
-    public IEnumerable<IDrvNat> Terms =>
+    public DrvExpr? ExprOpt => Inner as DrvExpr;
+
+    public string Content => ExprOpt != null ? $"({Inner.Content})" : Inner.Content;
+
+    public int Value => Inner.Value;
+}
+
+// DrcTerm :== DrvNat {* DrvNat}
+public record DrvTerm(
+    DrvFactor Head,
+    List<DrvFactor> Tail
+) : IDrvExp
+{
+    public IEnumerable<DrvFactor> Terms =>
         new[] { Head }.Concat(Tail);
 
     public string Content => string.Join(" * ", Terms.Select(t => t.Content));

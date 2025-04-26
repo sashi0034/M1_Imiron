@@ -258,20 +258,38 @@ public static class Parser
 
     // -----------------------------------------------
 
+    // DrcFactor :== '(' DrcExpr ')' | DrcNat
+    private static DrvFactor? parseFactor(ParserState parser)
+    {
+        if (parser.NextOpt()?.Text == "(")
+        {
+            parser.Step();
+
+            var inner = parseExpr(parser);
+            if (inner == null) throw abort(parser);
+
+            expectToken(parser, ")");
+            return new DrvFactor(inner);
+        }
+
+        var nat = parseNat(parser);
+        return nat != null ? new DrvFactor(nat) : null;
+    }
+
     // DrcTerm :== DrvNat {* DrvNat}
     private static DrvTerm? parseTerm(ParserState parser)
     {
-        var head = parseNat(parser);
+        var head = parseFactor(parser);
         if (head == null) return null;
 
-        List<IDrvNat> tail = [];
+        List<DrvFactor> tail = [];
 
         while (true)
         {
             if (parser.NextOpt()?.Text != "*") break;
             parser.Step();
 
-            var rhs = parseNat(parser);
+            var rhs = parseFactor(parser);
             if (rhs == null) throw abort(parser);
 
             tail.Add(rhs);
@@ -313,6 +331,11 @@ public static class Parser
         var nat = parseNat(parser);
         if (nat == null) throw abort(parser);
 
+        return parseExprRule_internal(expr, nat);
+    }
+
+    private static IDrvExpRule? parseExprRule_internal(DrvExpr expr, IDrvNat nat)
+    {
         if (expr.Tail.Count > 0)
         {
             return new DrvEPlus(expr.PopBack(), expr.Tail[^1], nat);
@@ -322,6 +345,11 @@ public static class Parser
         if (term.Tail.Count > 0)
         {
             return new DrvETimes(term.PopBack(), term.Tail[^1], nat);
+        }
+
+        if (term.Head.ExprOpt != null)
+        {
+            return parseExprRule_internal(term.Head.ExprOpt, nat);
         }
 
         return new DrvEConst(term.Head);

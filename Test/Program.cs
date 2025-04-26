@@ -224,5 +224,80 @@ public static class Test
                 }
             }
             """, Reduction.Reduce("S(Z) + S(Z) + S(Z) evalto S(S(S(Z)))"));
+
+        assertEqual(
+            """
+            S(S(S(Z))) + S(S(Z)) * S(Z) evalto S(S(S(S(S(Z))))) by E-Plus {
+                S(S(S(Z))) evalto S(S(S(Z))) by E-Const {};
+                S(S(Z)) * S(Z) evalto S(S(Z)) by E-Times {
+                    S(S(Z)) evalto S(S(Z)) by E-Const {};
+                    S(Z) evalto S(Z) by E-Const {};
+                    S(S(Z)) times S(Z) is S(S(Z)) by T-Succ {
+                        S(Z) times S(Z) is S(Z) by T-Succ {
+                            Z times S(Z) is Z by T-Zero {};
+                            S(Z) plus Z is S(Z) by P-Succ {
+                                Z plus Z is Z by P-Zero {}
+                            }
+                        };
+                        S(Z) plus S(Z) is S(S(Z)) by P-Succ {
+                            Z plus S(Z) is S(Z) by P-Zero {}
+                        }
+                    }
+                };
+                S(S(S(Z))) plus S(S(Z)) is S(S(S(S(S(Z))))) by P-Succ {
+                    S(S(Z)) plus S(S(Z)) is S(S(S(S(Z)))) by P-Succ {
+                        S(Z) plus S(S(Z)) is S(S(S(Z))) by P-Succ {
+                            Z plus S(S(Z)) is S(S(Z)) by P-Zero {}
+                        }
+                    }
+                }
+            }
+            """, Reduction.Reduce("S(S(S(Z))) + S(S(Z)) * S(Z) evalto S(S(S(S(S(Z)))))"));
+
+        assertEqual(
+            """
+            (S(S(Z)) + S(S(Z))) * Z evalto Z by E-Times {
+                S(S(Z)) + S(S(Z)) evalto S(S(S(S(Z)))) by E-Plus {
+                    S(S(Z)) evalto S(S(Z)) by E-Const {};
+                    S(S(Z)) evalto S(S(Z)) by E-Const {};
+                    S(S(Z)) plus S(S(Z)) is S(S(S(S(Z)))) by P-Succ {
+                        S(Z) plus S(S(Z)) is S(S(S(Z))) by P-Succ {
+                            Z plus S(S(Z)) is S(S(Z)) by P-Zero {}
+                        }
+                    }
+                };
+                Z evalto Z by E-Const {};
+                S(S(S(S(Z)))) times Z is Z by T-Succ {
+                    S(S(S(Z))) times Z is Z by T-Succ {
+                        S(S(Z)) times Z is Z by T-Succ {
+                            S(Z) times Z is Z by T-Succ {
+                                Z times Z is Z by T-Zero {};
+                                Z plus Z is Z by P-Zero {}
+                            };
+                            Z plus Z is Z by P-Zero {}
+                        };
+                        Z plus Z is Z by P-Zero {}
+                    };
+                    Z plus Z is Z by P-Zero {}
+                }
+            }
+            """, Reduction.Reduce("(S(S(Z)) + S(S(Z))) * Z evalto Z"));
+
+        assertEqual(
+            """
+            Z * (S(S(Z)) + S(S(Z))) evalto Z by E-Times {
+                Z evalto Z by E-Const {};
+                S(S(Z)) + S(S(Z)) evalto S(S(S(S(Z)))) by E-Plus {
+                    S(S(Z)) evalto S(S(Z)) by E-Const {};
+                    S(S(Z)) evalto S(S(Z)) by E-Const {};
+                    S(S(Z)) plus S(S(Z)) is S(S(S(S(Z)))) by P-Succ {
+                        S(Z) plus S(S(Z)) is S(S(S(Z))) by P-Succ {
+                            Z plus S(S(Z)) is S(S(Z)) by P-Zero {}
+                        }
+                    }
+                };
+                Z times S(S(S(S(Z)))) is Z by T-Zero {}
+            }
+            """, Reduction.Reduce("Z * (S(S(Z)) + S(S(Z))) evalto Z"));
     }
 }
