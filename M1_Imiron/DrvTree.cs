@@ -108,7 +108,7 @@ public record DrvLTrans(
     IDrvValue N3
 ) : IDrvRule
 {
-    public readonly IDrvValue N2 = DrvS.FromValue(N1.Value - 1);
+    public readonly IDrvValue N2 = DrvS.FromValue(N1.Value + 1);
 
     public string Content => $"{N1.Content} is less than {N3.Content} by L-Trans";
 
