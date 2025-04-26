@@ -1,19 +1,19 @@
 ﻿namespace M1_Imiron;
 
-public interface IDrvExpr
+public interface IDrv
 {
     public string Content { get; }
 }
 
 // DrvValue ::= DrvZ | DrvS
-public interface IDrvValue : IDrvExpr
+public interface IDrvNat : IDrv
 {
     public int Value { get; }
 }
 
 // DrvZ ::= 'Z'
 public record DrvZ(
-) : IDrvValue
+) : IDrvNat
 {
     public string Content => "Z";
 
@@ -22,28 +22,28 @@ public record DrvZ(
 
 // DrvS ::= 'S' '(' DrvValue ')'
 public record DrvS(
-    IDrvValue Inner
-) : IDrvValue
+    IDrvNat Inner
+) : IDrvNat
 {
     public string Content => $"S({Inner.Content})";
 
     public int Value => 1 + Inner.Value;
 
-    public static IDrvValue FromValue(int value)
+    public static IDrvNat FromValue(int value)
     {
         if (value <= 0) return new DrvZ();
         return new DrvS(FromValue(value - 1));
     }
 }
 
-public interface IDrvRule : IDrvExpr
+public interface IDrvRule : IDrv
 {
     public string[] Reduction { get; }
 }
 
 // DrvPZero ::= DrvZ plus DrvValue is DrvValue
 public record DrvPZero(
-    IDrvValue N
+    IDrvNat N
 ) : IDrvRule
 {
     public string Content => $"Z plus {N.Content} is {N.Content} by P-Zero";
@@ -54,7 +54,7 @@ public record DrvPZero(
 // DrvPSucc ::= DrvS plus DrvValue is DrvS
 public record DrvPSucc(
     DrvS N1,
-    IDrvValue N2,
+    IDrvNat N2,
     DrvS N
 ) : IDrvRule
 {
@@ -66,7 +66,7 @@ public record DrvPSucc(
 
 // DrvTZero ::= DrvZ times TrvParameter is DrvZ
 public record DrvTZero(
-    IDrvValue N
+    IDrvNat N
 ) : IDrvRule
 {
     public string Content => $"Z times {N.Content} is Z by T-Zero";
@@ -77,11 +77,11 @@ public record DrvTZero(
 // DrvTSucc ::= DrvS times DrvValue is DrvValue
 public record DrvTSucc(
     DrvS N1,
-    IDrvValue N2,
-    IDrvValue N4
+    IDrvNat N2,
+    IDrvNat N4
 ) : IDrvRule
 {
-    public readonly IDrvValue N3 = DrvS.FromValue(N1.Inner.Value * N2.Value);
+    public readonly IDrvNat N3 = DrvS.FromValue(N1.Inner.Value * N2.Value);
 
     public string Content => $"{N1.Content} times {N2.Content} is {N4.Content} by T-Succ";
 
@@ -94,7 +94,7 @@ public record DrvTSucc(
 
 // DrvLSucc ::= DrvValue is less than DrvS
 public record DrvLSucc(
-    IDrvValue N
+    IDrvNat N
 ) : IDrvRule
 {
     public string Content => $"{N.Content} is less than S({N.Content}) by L-Succ";
@@ -104,11 +104,11 @@ public record DrvLSucc(
 
 // DrvLTrans ::= DrvValue is less than DrvValue
 public record DrvLTrans(
-    IDrvValue N1,
-    IDrvValue N3
+    IDrvNat N1,
+    IDrvNat N3
 ) : IDrvRule
 {
-    public readonly IDrvValue N2 = DrvS.FromValue(N1.Value + 1);
+    public readonly IDrvNat N2 = DrvS.FromValue(N1.Value + 1);
 
     public string Content => $"{N1.Content} is less than {N3.Content} by L-Trans";
 
@@ -121,7 +121,7 @@ public record DrvLTrans(
 
 // DrvLZero ::= DrvZ is less than DrvS
 public record DrvLZero(
-    IDrvValue N
+    IDrvNat N
 ) : IDrvRule
 {
     public string Content => $"Z is less than {N.Content} by L-Zero";
@@ -143,11 +143,115 @@ public record DrvLSuccSucc(
 
 // DrvLSuccR :== DrvValue is less than DrvS
 public record DrvLSuccR(
-    IDrvValue N1,
+    IDrvNat N1,
     DrvS N2
 ) : IDrvRule
 {
     public string Content => $"{N1.Content} is less than {N2.Content} by L-SuccR";
 
     public string[] Reduction => [$"{N1.Content} is less than {N2.Inner.Content}"];
+}
+
+public interface IDrvExp : IDrvNat;
+
+
+// DrcTerm :== DrvNat {* DrvNat}
+public record DrvTerm(
+    IDrvNat Head,
+    List<IDrvNat> Tail
+) : IDrvExp
+{
+    public IEnumerable<IDrvNat> Terms =>
+        new[] { Head }.Concat(Tail);
+
+    public string Content => string.Join(" * ", Terms.Select(t => t.Content));
+
+    public int Value => Terms.Aggregate(1, (acc, t) => acc * t.Value);
+
+    public DrvTerm PopFront()
+    {
+        return new DrvTerm(Tail[0], Tail.Slice(1, Tail.Count - 1));
+    }
+}
+
+// DrvExpr ::= DrvTerm {+ DrcTerm}
+public record DrvExpr(
+    DrvTerm Head,
+    List<DrvTerm> Tail
+) : IDrvExp
+{
+    public IEnumerable<DrvTerm> Terms =>
+        new[] { Head }.Concat(Tail);
+
+    public string Content => string.Join(" + ", Terms.Select(t => t.Content));
+
+    public int Value => Terms.Sum(t => t.Value);
+
+    public DrvExpr PopFront()
+    {
+        return new DrvExpr(Tail[0], Tail.Slice(1, Tail.Count - 1));
+    }
+}
+
+public interface IDrvExpRule : IDrvRule
+{
+    public int Value { get; }
+}
+
+// DrvEConst :== DrvValue evalto DrvValue
+public record DrvEConst(
+    IDrvNat N
+) : IDrvExpRule
+{
+    public string Content => $"{N.Content} evalto {N.Content} by E-Const";
+
+    public string[] Reduction => [];
+
+    public int Value => N.Value;
+}
+
+// DrvEPlus :== DrvValue + DrvValue evalto DrvValue
+public record DrvEPlus(
+    IDrvExp E1,
+    IDrvExp E2,
+    IDrvNat N
+) : IDrvExpRule
+{
+    public IDrvNat N1 => DrvS.FromValue(E1.Value);
+
+    public IDrvNat N2 => DrvS.FromValue(E2.Value);
+
+    public string Content => $"{E1.Content} + {E2.Content} evalto {N.Content} by E-Plus";
+
+    public string[] Reduction =>
+    [
+        $"{E1.Content} evalto {N1.Content}",
+        $"{E2.Content} evalto {N2.Content}",
+        $"{N1.Content} plus {N2.Content} is {N.Content}"
+    ];
+
+    public int Value => N.Value;
+}
+
+// DrvETimes :== DrvValue * DrvValue evalto DrvValue
+public record DrvETimes(
+    IDrvNat E1,
+    IDrvNat E2,
+    IDrvNat N
+) : IDrvExpRule
+{
+    public IDrvNat N1 => DrvS.FromValue(E1.Value);
+
+    public IDrvNat N2 => DrvS.FromValue(E2.Value);
+
+    public string Content => $"{E1.Content} * {E2.Content} evalto {N.Content} by E-Times";
+
+    public string[] Reduction =>
+    [
+        $"{E1.Content} evalto {N1.Content}",
+        $"{E2.Content} evalto {N2.Content}",
+        $"{N1.Content} times {N2.Content} is {N.Content}"
+    ];
+
+    public int Value => N.Value;
 }

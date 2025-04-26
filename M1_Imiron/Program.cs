@@ -7,12 +7,14 @@ internal static class Program
         var input = Console.ReadLine();
         var result = Reduction.Reduce(input);
 
-        Console.WriteLine("\n----------------------------------------------- Result");
+        // Console.WriteLine("\n----------------------------------------------- Result");
 
-        Console.WriteLine(result);
+        // Console.WriteLine(result);
+
+        Console.Clear();
 
         var testCode =
-            "\n----------------------------------------------- Generate the test\n" +
+            // "\n----------------------------------------------- Generate the test\n" +
             "assertEqual(\n" +
             "\"\"\"\n" +
             result + "\n" +

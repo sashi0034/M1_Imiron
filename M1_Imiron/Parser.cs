@@ -7,9 +7,10 @@ public class ParserState
     private readonly List<Token> _tokens;
     private int _parseIndex = 0;
 
-    public ParserState(List<Token> tokens)
+    public ParserState(List<Token> tokens, int parseIndex = 0)
     {
         _tokens = tokens;
+        _parseIndex = parseIndex;
     }
 
     public Token Next() => _tokens[_parseIndex];
@@ -20,7 +21,7 @@ public class ParserState
 
     public bool IsEnd() => _parseIndex >= _tokens.Count;
 
-    public ParserState Clone() => new(_tokens);
+    public ParserState Clone() => new(_tokens, _parseIndex);
 }
 
 public static class Parser
@@ -73,7 +74,7 @@ public static class Parser
 
         expectToken(parser, "(");
 
-        IDrvValue? parameter = parseValue(parser);
+        IDrvNat? parameter = parseNat(parser);
         if (parameter == null) throw abort(parser);
 
         expectToken(parser, ")");
@@ -81,12 +82,11 @@ public static class Parser
         return new DrvS(parameter);
     }
 
-
     // DrvValue ::= DrvZ | DrvS
-    private static IDrvValue? parseValue(ParserState parser)
+    private static IDrvNat? parseNat(ParserState parser)
     {
-        var value = parseZ(parser) ?? (IDrvValue?)parseS(parser);
-        return value;
+        var nat = parseZ(parser) ?? (IDrvNat?)parseS(parser);
+        return nat;
     }
 
     // DrvPZero ::= DrvZ plus DrvValue is DrvValue
@@ -95,19 +95,19 @@ public static class Parser
     // DrvTSucc ::= DrvS times DrvValue is DrvValue
     private static IDrvRule? parseNatRule(ParserState parser)
     {
-        var lhs = parseValue(parser);
+        var lhs = parseNat(parser);
         if (lhs == null) return null;
 
         var op = parser.NextOpt()?.Text;
         if (op != "plus" && op != "times") return null;
         parser.Step();
 
-        var rhs = parseValue(parser);
+        var rhs = parseNat(parser);
         if (rhs == null) throw abort(parser);
 
         expectToken(parser, "is");
 
-        var result = parseValue(parser);
+        var result = parseNat(parser);
         if (result == null) throw abort(parser);
 
         if (op == "plus")
@@ -137,10 +137,12 @@ public static class Parser
         throw fail(parser);
     }
 
+    // -----------------------------------------------
+
     // lhs is less than rhs
-    private static bool parseLhsIsLessThanRhs(ParserState parser, out IDrvValue? lhs, out IDrvValue? rhs)
+    private static bool parseLhsIsLessThanRhs(ParserState parser, out IDrvNat? lhs, out IDrvNat? rhs)
     {
-        lhs = parseValue(parser);
+        lhs = parseNat(parser);
         if (lhs == null)
         {
             rhs = null;
@@ -165,7 +167,7 @@ public static class Parser
 
         expectToken(parser, "than");
 
-        rhs = parseValue(parser);
+        rhs = parseNat(parser);
         if (rhs == null) throw abort(parser);
         return false;
     }
@@ -254,6 +256,77 @@ public static class Parser
         }
     }
 
+    // -----------------------------------------------
+
+    // DrcTerm :== DrvNat {* DrvNat}
+    private static DrvTerm? parseTerm(ParserState parser)
+    {
+        var head = parseNat(parser);
+        if (head == null) return null;
+
+        List<IDrvNat> tail = [];
+
+        while (true)
+        {
+            if (parser.NextOpt()?.Text != "*") break;
+            parser.Step();
+
+            var rhs = parseNat(parser);
+            if (rhs == null) throw abort(parser);
+
+            tail.Add(rhs);
+        }
+
+        return new DrvTerm(head, tail);
+    }
+
+    // DrvExpr ::= DrvTerm {+ DrcTerm}
+    private static DrvExpr? parseExpr(ParserState parser)
+    {
+        var head = parseTerm(parser);
+        if (head == null) return null;
+
+        List<DrvTerm> tail = [];
+
+        while (true)
+        {
+            if (parser.NextOpt()?.Text != "+") break;
+            parser.Step();
+
+            var rhs = parseTerm(parser);
+            if (rhs == null) throw abort(parser);
+
+            tail.Add(rhs);
+        }
+
+        return new DrvExpr(head, tail);
+    }
+
+    private static IDrvExpRule? parseExpRule(ParserState parser)
+    {
+        var expr = parseExpr(parser);
+        if (expr == null) return null;
+
+        if (parser.NextOpt()?.Text != "evalto") return null;
+        parser.Step();
+
+        var nat = parseNat(parser);
+        if (nat == null) throw abort(parser);
+
+        if (expr.Tail.Count > 0)
+        {
+            return new DrvEPlus(expr.Head, expr.PopFront(), nat);
+        }
+
+        var term = expr.Head;
+        if (term.Tail.Count > 0)
+        {
+            return new DrvETimes(term.Head, term.PopFront(), nat);
+        }
+
+        return new DrvEConst(term.Head);
+    }
+
     public static IDrvRule ExpectRule(ParserState parser)
     {
         var nat = parseNatRule(parser.Clone());
@@ -261,6 +334,9 @@ public static class Parser
 
         var compareNat = parseCompareNatRule(parser.Clone());
         if (compareNat != null) return compareNat;
+
+        var exprRule = parseExpRule(parser.Clone());
+        if (exprRule != null) return exprRule;
 
         throw fail(parser);
     }

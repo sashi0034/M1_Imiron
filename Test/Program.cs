@@ -20,7 +20,6 @@ public static class Test
         }
     }
 
-
     [Fact]
     public static void Example_0()
     {
@@ -163,5 +162,31 @@ public static class Test
                 }
             }
             """, Reduction.Reduce("#CompareNat3 S(S(Z)) is less than S(S(S(S(S(Z)))))"));
+    }
+
+    [Fact]
+    public static void EvalNatExp()
+    {
+        assertEqual(
+            """
+            Z + S(S(Z)) evalto S(S(Z)) by E-Plus {
+                Z evalto Z by E-Const {};
+                S(S(Z)) evalto S(S(Z)) by E-Const {};
+                Z plus S(S(Z)) is S(S(Z)) by P-Zero {}
+            }
+            """, Reduction.Reduce("Z + S(S(Z)) evalto S(S(Z))"));
+
+        assertEqual(
+            """
+            S(S(Z)) + Z evalto S(S(Z)) by E-Plus {
+                S(S(Z)) evalto S(S(Z)) by E-Const {};
+                Z evalto Z by E-Const {};
+                S(S(Z)) plus Z is S(S(Z)) by P-Succ {
+                    S(Z) plus Z is S(Z) by P-Succ {
+                        Z plus Z is Z by P-Zero {}
+                    }
+                }
+            }
+            """, Reduction.Reduce("S(S(Z)) + Z evalto S(S(Z))"));
     }
 }

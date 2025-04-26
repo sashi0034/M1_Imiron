@@ -18,8 +18,7 @@ public static class Tokenizer
 
             var lineText = lineTextList[curretntLine];
 
-            // アルファベット or '(', ']', '{', '}', ';'
-            var matches = Regex.Matches(lineText, @"\w+|[()\[\]{};]|#\w+");
+            var matches = Regex.Matches(lineText, @"\w+|[()\[\]{};+*]|#\w+");
             foreach (Match match in matches)
             {
                 var tokenText = match.Value;
