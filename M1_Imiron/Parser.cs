@@ -19,6 +19,8 @@ public class ParserState
     public void Step() => _parseIndex++;
 
     public bool IsEnd() => _parseIndex >= _tokens.Count;
+
+    public ParserState Clone() => new(_tokens);
 }
 
 public static class Parser
@@ -91,20 +93,19 @@ public static class Parser
     // DrvPSucc ::= DrvS plus DrvValue is DrvS
     // DrvTZero ::= DrvZ times TrvParameter is DrvZ
     // DrvTSucc ::= DrvS times DrvValue is DrvValue
-    public static IDrvRule ExpectRule(ParserState parser)
+    private static IDrvRule? parsePlusOrTimesRule(ParserState parser)
     {
         var lhs = parseValue(parser);
-        if (lhs == null) throw abort(parser);
+        if (lhs == null) return null;
 
         var op = parser.NextOpt()?.Text;
-        if (op != "plus" && op != "times") throw abort(parser);
+        if (op != "plus" && op != "times") return null;
         parser.Step();
 
         var rhs = parseValue(parser);
         if (rhs == null) throw abort(parser);
 
-        if (parser.NextOpt()?.Text != "is") throw abort(parser);
-        parser.Step();
+        expectToken(parser, "is");
 
         var result = parseValue(parser);
         if (result == null) throw abort(parser);
@@ -132,6 +133,45 @@ public static class Parser
                 return new DrvTSucc(lhsS, rhs, result);
             }
         }
+
+        throw fail(parser);
+    }
+
+    // DrvLSucc ::= DrvValue is less than DrvS
+    // DrvLTrans ::= DrvValue is less than DrvValue
+    public static IDrvRule? parseLessThanRule(ParserState parser)
+    {
+        var lhs = parseValue(parser);
+        if (lhs == null) return null;
+
+        if (parser.NextOpt()?.Text != "is") return null;
+        parser.Step();
+
+        if (parser.NextOpt()?.Text != "less") return null;
+        parser.Step();
+
+        expectToken(parser, "than");
+
+        var rhs = parseValue(parser);
+        if (rhs == null) throw abort(parser);
+
+        if (lhs.Value == rhs.Value - 1)
+        {
+            return new DrvLSucc(lhs);
+        }
+        else
+        {
+            return new DrvLTrans(lhs, rhs);
+        }
+    }
+
+    public static IDrvRule ExpectRule(ParserState parser)
+    {
+        var plusOrMinus = parsePlusOrTimesRule(parser.Clone());
+        if (plusOrMinus != null) return plusOrMinus;
+
+        var lessThan = parseLessThanRule(parser.Clone());
+        if (lessThan != null) return lessThan;
 
         throw fail(parser);
     }

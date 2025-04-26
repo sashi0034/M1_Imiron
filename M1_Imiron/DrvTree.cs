@@ -91,3 +91,30 @@ public record DrvTSucc(
         $"{N2.Content} plus {N3.Content} is {N4.Content}"
     ];
 }
+
+// DrvLSucc ::= DrvValue is less than DrvS
+public record DrvLSucc(
+    IDrvValue N
+) : IDrvRule
+{
+    public string Content => $"{N.Content} is less than S({N.Content}) by L-Succ";
+
+    public string[] Reduction => [];
+}
+
+// DrvLTrans ::= DrvValue is less than DrvValue
+public record DrvLTrans(
+    IDrvValue N1,
+    IDrvValue N3
+) : IDrvRule
+{
+    public readonly IDrvValue N2 = DrvS.FromValue(N1.Value - 1);
+
+    public string Content => $"{N1.Content} is less than {N3.Content} by L-Trans";
+
+    public string[] Reduction =>
+    [
+        $"{N1.Content} is less than {N2.Content}",
+        $"{N2.Content} is less than {N3.Content}"
+    ];
+}

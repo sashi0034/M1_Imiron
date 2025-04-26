@@ -112,4 +112,13 @@ public static class Test
             }
             """, Reduction.Reduce("S(S(Z)) times S(S(Z)) is S(S(S(S(Z))))"));
     }
+
+    [Fact]
+    public static void Comparing_natural_numbers()
+    {
+        assertEqual(
+            """
+            S(S(Z)) is less than S(S(S(Z))) by L-Succ {}
+            """, Reduction.Reduce("S(S(Z)) is less than S(S(S(Z)))"));
+    }
 }
